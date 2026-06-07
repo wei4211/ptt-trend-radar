@@ -53,6 +53,27 @@
 
 ---
 
+## 📋 支援看板
+
+目前預設支援以下 4 個看板，涵蓋不同主題領域以利跨板比較分析：
+
+| 看板 | 主題 | 選擇原因 |
+|------|------|----------|
+| **Gossiping（八卦）** | 時事、社會議題 | PTT 最大看板，反映台灣社會輿論 |
+| **Stock** | 股市、投資 | 財經情緒對市場有高度參考價值 |
+| **NBA** | 籃球、體育 | 高互動量的娛樂內容，情緒明顯 |
+| **Tech_Job** | 科技業、求職 | 反映科技產業就業市場動態 |
+
+**新增其他看板**只需修改 `backend/app/core/config.py`：
+
+```python
+SUPPORTED_BOARDS: List[str] = ["Gossiping", "Stock", "NBA", "Tech_Job", "C_Chat", "movie"]
+```
+
+PTT 上任何公開看板皆可加入，名稱需與 PTT 網址中的看板名稱一致（如 `https://www.ptt.cc/bbs/C_Chat/`）。
+
+---
+
 ## 🏗️ 系統架構
 
 ```mermaid
