@@ -108,11 +108,11 @@ cp .env.example .env
 docker compose up --build
 ```
 
-| 服務 | 網址 |
-|------|------|
-| Frontend | http://localhost:3000 |
-| API | http://localhost:8001 |
-| Swagger | http://localhost:8001/docs |
+啟動完成後開啟瀏覽器：
+
+> 🌐 **http://localhost:3000** ← 主要 Dashboard（從這裡使用）
+>
+> 📖 http://localhost:8001/docs ← API 文件（Swagger UI）
 
 ### 方式二：本地開發腳本
 
@@ -131,6 +131,23 @@ cd frontend && npm install && cd ..
 # 一鍵啟動（DB + Backend + Frontend）
 bash start.sh
 ```
+
+啟動完成後開啟瀏覽器：
+
+> 🌐 **http://localhost:3000** ← 主要 Dashboard（從這裡使用）
+>
+> 📖 http://localhost:8001/docs ← API 文件（Swagger UI）
+
+#### 首次使用：爬取文章資料
+
+啟動後 Dashboard 會是空的，需要先爬取一次：
+
+```bash
+# 爬取所有看板（約 3-5 分鐘）
+curl -X POST "http://localhost:8001/api/scraper/trigger/sync"
+```
+
+或直接在 Dashboard 點右上角的「**立即爬取**」按鈕。
 
 ---
 
