@@ -14,7 +14,7 @@ async def scheduled_scrape():
     async with AsyncSessionLocal() as db:
         for board in settings.SUPPORTED_BOARDS:
             try:
-                result = await run_scrape_and_analyze(db, board, pages=2)
+                result = await run_scrape_and_analyze(db, board, pages=10)
                 logger.info(f"Scheduled scrape {board}: {result}")
             except Exception as e:
                 logger.error(f"Scheduled scrape failed for {board}: {e}")

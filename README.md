@@ -1,177 +1,259 @@
+<div align="center">
+
 # 📡 PTT Trend Radar
 
-> PTT 熱門話題與情緒分析平台 — 自動爬取 PTT 文章，進行 NLP 分析、BERTopic 主題建模，並以 Gemini AI 生成摘要，透過 React Dashboard 視覺化呈現。
+**PTT 熱門話題與情緒分析平台**
 
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-green?logo=fastapi)
-![React](https://img.shields.io/badge/React-18-61dafb?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql)
+自動爬取 PTT 文章 → NLP 分析 → BERTopic 主題建模 → Gemini AI 摘要 → React Dashboard 視覺化
+
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+
+</div>
 
 ---
 
-## 功能特色
+## 📸 Screenshots
+
+### 總覽 Dashboard
+![Dashboard](assets/總攬.png)
+
+### 主題分析（BERTopic + Gemini AI）
+![Topics](assets/主題分析.png)
+
+### 關鍵字分析
+![Keywords](assets/關鍵字分析.png)
+
+### 情緒分析
+![Sentiment](assets/情緒分析.png)
+
+### 文字雲
+![WordCloud](assets/文字雲.png)
+
+### 文章列表
+![Articles](assets/文章列表.png)
+
+---
+
+## ✨ 功能特色
 
 | 功能 | 技術 | 說明 |
 |------|------|------|
-| PTT 爬蟲 | `httpx` + `BeautifulSoup` | 支援八卦、Stock、NBA、Tech_Job，自動排程 |
-| 關鍵字分析 | `sklearn TF-IDF` + `jieba` | 過濾停用詞，萃取最具代表性詞彙 |
-| 情緒分析 | `SnowNLP` | 正面 / 中性 / 負面分類，含每日趨勢圖 |
-| 文字雲 | `wordcloud` | 依詞頻生成，支援中文字型 |
-| 主題建模 | `BERTopic` + `sentence-transformers` | 自動發現熱門主題，無需預先定義 |
-| AI 摘要 | `Gemini 2.5 Flash` | 每個主題自動生成 100-200 字繁中摘要 |
-| Dashboard | `React` + `Recharts` | 圓餅圖、折線圖、長條圖、主題 Explorer |
+| 🕷️ **PTT 爬蟲** | `httpx` + `BeautifulSoup` | 支援 4 個看板，APScheduler 定時自動爬取 |
+| 🔑 **關鍵字分析** | `sklearn TF-IDF` + `jieba` | 中文斷詞、停用詞過濾、以內容為主的 TF-IDF |
+| 💬 **情緒分析** | `SnowNLP` | 正 / 中 / 負分類，含每日趨勢折線圖 |
+| ☁️ **文字雲** | `wordcloud` | 詞頻驅動，支援中文字型，base64 回傳 |
+| 🧠 **主題建模** | `BERTopic` + `sentence-transformers` | 多語言 embedding，HDBSCAN 聚類，自動命名主題 |
+| ✨ **AI 摘要** | `Gemini 2.5 Flash` | 每個主題生成 100-200 字繁體中文分析摘要 |
+| 📊 **Dashboard** | `React` + `Recharts` + `TailwindCSS` | 暗色主題，圓餅圖 / 折線圖 / 長條圖 / Area Chart |
 
 ---
 
-## 系統截圖
+## 🏗️ 系統架構
 
-### 總覽 Dashboard
-- 文章數、平均情緒、情緒分布圓餅圖、14 天情緒趨勢折線圖、Top 15 關鍵字長條圖
+```mermaid
+graph TB
+    subgraph Scraper["🕷️ 資料蒐集"]
+        PTT["PTT 公開網頁"] -->|httpx + BeautifulSoup| SC[爬蟲模組]
+        SC -->|定時排程| AP[APScheduler]
+    end
 
-### 主題分析（BERTopic）
-- 自動發現主題、每個主題的情緒比例色條、熱度趨勢 Area Chart、代表文章列表、Gemini AI 摘要
+    subgraph DB["🗄️ 資料層"]
+        SC --> PG[(PostgreSQL)]
+        PG --> ART[articles]
+        PG --> TOP[topics]
+    end
 
----
+    subgraph NLP["🧠 NLP Pipeline"]
+        PG --> JB[jieba 斷詞]
+        JB --> TF[sklearn TF-IDF\n關鍵字分析]
+        JB --> SN[SnowNLP\n情緒分析]
+        JB --> WC[wordcloud\n文字雲]
+        PG --> BT[BERTopic\n主題建模]
+        BT --> ST[sentence-transformers\n多語言 Embedding]
+    end
 
-## 技術架構
+    subgraph API["⚡ FastAPI"]
+        TF & SN & WC & BT --> API_SRV[REST API :8001]
+        API_SRV --> GM[Gemini 2.5 Flash\nAI 摘要]
+    end
 
+    subgraph Frontend["🌐 React Frontend :3000"]
+        API_SRV --> DB_PAGE[總覽 Dashboard]
+        API_SRV --> KW_PAGE[關鍵字分析]
+        API_SRV --> SENT_PAGE[情緒分析]
+        API_SRV --> WC_PAGE[文字雲]
+        API_SRV --> TP_PAGE[主題 Explorer]
+        API_SRV --> ART_PAGE[文章列表]
+    end
 ```
-PTT文章 → 爬蟲(httpx) → PostgreSQL
-                              ↓
-                    NLP Pipeline
-                    ├── jieba 斷詞
-                    ├── sklearn TF-IDF 關鍵字
-                    ├── SnowNLP 情緒分析
-                    └── BERTopic 主題建模
-                              ↓
-                    FastAPI REST API
-                              ↓
-                    React Dashboard
-                              ↓
-                    Gemini 2.5 Flash AI 摘要
-```
 
 ---
 
-## 快速開始
+## 🚀 快速開始
 
-### 方式一：Docker（推薦）
+### 方式一：Docker（推薦，一行啟動）
 
 ```bash
-git clone https://github.com/your-username/ptt-trend-radar.git
+git clone https://github.com/wei4211/ptt-trend-radar.git
 cd ptt-trend-radar
 
 cp .env.example .env
-# 編輯 .env 填入 GEMINI_API_KEY
+# 編輯 .env，填入 GEMINI_API_KEY
 
 docker compose up --build
 ```
 
-開啟 http://localhost:3000
+| 服務 | 網址 |
+|------|------|
+| Frontend | http://localhost:3000 |
+| API | http://localhost:8001 |
+| Swagger | http://localhost:8001/docs |
 
-### 方式二：本地開發
-
-**前置需求：** Python 3.11+、Node 20+、PostgreSQL 15+
+### 方式二：本地開發腳本
 
 ```bash
-# 1. 啟動 PostgreSQL（或用 Docker）
-docker compose -f docker-compose.dev.yml up -d
+git clone https://github.com/wei4211/ptt-trend-radar.git
+cd ptt-trend-radar
 
-# 2. 安裝 Backend
-cd backend
-pip install -r requirements.txt
-cp ../.env.example ../.env   # 填入 GEMINI_API_KEY
+cp .env.example .env  # 填入 GEMINI_API_KEY
 
-# 3. 啟動 Backend
-DATABASE_URL="postgresql+asyncpg://ptt:pttpassword@localhost:5432/ptt_radar" \
-GEMINI_API_KEY="your-key-here" \
-uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+# 安裝 Python 依賴
+pip install -r backend/requirements.txt
 
-# 4. 安裝 & 啟動 Frontend
-cd ../frontend
-npm install
-npm run dev
-```
+# 安裝 Node 依賴
+cd frontend && npm install && cd ..
 
-**或用一鍵啟動腳本（本地開發）：**
-```bash
+# 一鍵啟動（DB + Backend + Frontend）
 bash start.sh
 ```
 
 ---
 
-## 環境變數
+## ⚙️ 環境變數
 
-複製 `.env.example` 並填入：
+| 變數 | 說明 | 必填 |
+|------|------|------|
+| `GEMINI_API_KEY` | Google AI Studio API Key | ✅ |
+| `DATABASE_URL` | PostgreSQL 連線字串 | ✅ |
+| `SCRAPE_INTERVAL_MINUTES` | 自動爬取間隔（分鐘，預設 60） | ❌ |
 
-```env
-GEMINI_API_KEY=your-gemini-api-key   # Google AI Studio 取得
-DATABASE_URL=postgresql+asyncpg://ptt:pttpassword@localhost:5432/ptt_radar
-SCRAPE_INTERVAL_MINUTES=60
-```
-
-> Gemini API Key 申請：https://aistudio.google.com/apikey
+> 申請 Gemini API Key：https://aistudio.google.com/apikey
 
 ---
 
-## API 文件
+## 📡 API 文件
 
-啟動後開啟 http://localhost:8001/docs（Swagger UI）
+啟動後開啟 http://localhost:8001/docs 查看完整 Swagger 文件
 
-| Endpoint | 說明 |
-|----------|------|
-| `POST /api/scraper/trigger/sync` | 立即爬取（同步） |
-| `GET /api/analysis/overview` | 文章數、情緒概覽 |
-| `GET /api/analysis/keywords` | TF-IDF 關鍵字 |
-| `GET /api/analysis/sentiment` | 情緒分布 |
-| `GET /api/analysis/sentiment/trend` | 每日情緒趨勢 |
-| `GET /api/analysis/wordcloud` | 文字雲（base64 PNG）|
-| `POST /api/topics/compute/sync` | 執行 BERTopic 主題分析 |
-| `GET /api/topics/` | 取得主題列表 |
-| `GET /api/topics/{id}/trend` | 主題熱度趨勢 |
-| `POST /api/topics/{id}/summary` | Gemini AI 生成摘要 |
+<details>
+<summary>查看主要 Endpoints</summary>
+
+| Method | Endpoint | 說明 |
+|--------|----------|------|
+| `POST` | `/api/scraper/trigger/sync` | 立即爬取所有看板 |
+| `GET` | `/api/analysis/overview` | 文章數、平均情緒概覽 |
+| `GET` | `/api/analysis/keywords` | TF-IDF 關鍵字排行 |
+| `GET` | `/api/analysis/sentiment` | 情緒分布（正/中/負 %） |
+| `GET` | `/api/analysis/sentiment/trend` | 每日情緒趨勢 |
+| `GET` | `/api/analysis/wordcloud` | 文字雲（base64 PNG） |
+| `POST` | `/api/topics/compute/sync` | 執行 BERTopic 主題分析 |
+| `GET` | `/api/topics/` | 取得主題列表 |
+| `GET` | `/api/topics/{id}/trend` | 主題熱度趨勢 |
+| `GET` | `/api/topics/{id}/articles` | 主題代表文章 |
+| `POST` | `/api/topics/{id}/summary` | Gemini AI 生成摘要 |
+| `GET` | `/api/articles/` | 文章列表（依推文數排序） |
+
+</details>
 
 ---
 
-## 專案結構
+## 📁 專案結構
 
 ```
 ptt-trend-radar/
 ├── backend/
 │   ├── app/
-│   │   ├── api/routes/        # FastAPI 路由
-│   │   ├── core/              # 設定、排程器
-│   │   ├── db/                # SQLAlchemy async
-│   │   ├── models/            # ORM models
-│   │   ├── nlp/               # NLP 模組
+│   │   ├── api/routes/         # FastAPI 路由
+│   │   │   ├── analysis.py     # 關鍵字、情緒、文字雲
+│   │   │   ├── articles.py     # 文章列表
+│   │   │   ├── scraper.py      # 爬蟲觸發
+│   │   │   └── topics.py       # BERTopic 主題
+│   │   ├── core/
+│   │   │   ├── config.py       # 全域設定
+│   │   │   └── scheduler.py    # APScheduler
+│   │   ├── db/database.py      # SQLAlchemy async
+│   │   ├── models/             # ORM models
+│   │   ├── nlp/
 │   │   │   ├── keyword_extractor.py   # sklearn TF-IDF
 │   │   │   ├── sentiment_analyzer.py  # SnowNLP
 │   │   │   ├── topic_modeler.py       # BERTopic
 │   │   │   └── wordcloud_generator.py
-│   │   ├── scraper/           # PTT 爬蟲
-│   │   └── services/          # 業務邏輯
+│   │   ├── scraper/ptt_scraper.py     # PTT 爬蟲
+│   │   └── services/           # 業務邏輯 + TTL 快取
 │   └── requirements.txt
 ├── frontend/
 │   └── src/
-│       ├── pages/             # Dashboard, Topics, Keywords...
-│       ├── components/        # Charts, Cards, UI
-│       └── hooks/             # useAnalysis, useTopics
+│       ├── pages/              # Dashboard, Topics, Keywords...
+│       ├── components/
+│       │   ├── Charts/         # Recharts 圖表元件
+│       │   ├── Cards/          # StatCard
+│       │   └── UI/             # BoardSelector, Spinner
+│       └── hooks/              # useAnalysis, useTopics
+├── assets/                     # README 截圖
 ├── docker-compose.yml
-├── start.sh                   # 一鍵本地啟動
+├── docker-compose.dev.yml      # 僅 DB（本地開發用）
+├── start.sh                    # 一鍵本地啟動
 └── .env.example
 ```
 
 ---
 
-## 開發路線圖
+## 🗺️ 開發路線圖
 
-- [x] **MVP**：爬蟲、關鍵字、情緒分析、文字雲、Dashboard
-- [x] **V2**：BERTopic 主題建模、Gemini AI 摘要、主題趨勢
-- [ ] **V3**：RAG 問答、主題熱度預測、即時 WebSocket 更新
+- [x] **MVP**：PTT 爬蟲、TF-IDF 關鍵字、SnowNLP 情緒分析、文字雲、React Dashboard
+- [x] **V2**：BERTopic 主題建模、Gemini AI 摘要、主題熱度趨勢圖
+- [ ] **V3**：RAG 問答（LangChain）、主題熱度預測、WebSocket 即時更新
 
 ---
 
-## License
+## 🛠️ Tech Stack
 
-MIT
+<div align="center">
+
+**Backend**
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white)
+
+**NLP / AI**
+
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=flat-square&logo=huggingface&logoColor=black)
+![Google Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-4285F4?style=flat-square&logo=google&logoColor=white)
+
+**Frontend**
+
+![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Recharts](https://img.shields.io/badge/Recharts-22B5BF?style=flat-square)
+
+**DevOps**
+
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)
+
+</div>
+
+---
+
+## 📄 License
+
+MIT © 2025

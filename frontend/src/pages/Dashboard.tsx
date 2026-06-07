@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RefreshCw, FileText, MessageSquare, ThumbsUp, ThumbsDown, BarChart2 } from "lucide-react";
 import { triggerScrape } from "../api/client";
 import { useOverview, useSentiment, useSentimentTrend, useKeywords } from "../hooks/useAnalysis";
 import BoardSelector from "../components/UI/BoardSelector";
@@ -26,10 +27,10 @@ export default function Dashboard() {
       const res = await triggerScrape(board);
       const results = res.data.results || [res.data];
       const total = results.reduce((s: number, r: { inserted?: number }) => s + (r.inserted || 0), 0);
-      setScrapeMsg(`✅ 新增 ${total} 篇文章`);
+      setScrapeMsg(`新增 ${total} 篇文章`);
       refetch();
     } catch {
-      setScrapeMsg("❌ 爬取失敗，請確認 API 是否啟動");
+      setScrapeMsg("爬取失敗，請確認 API 是否啟動");
     } finally {
       setScraping(false);
     }
@@ -37,14 +38,13 @@ export default function Dashboard() {
 
   const sentimentLabel = (score?: number) => {
     if (!score) return "—";
-    if (score >= 0.6) return "😊 偏正面";
-    if (score <= 0.4) return "😟 偏負面";
-    return "😐 中性";
+    if (score >= 0.6) return "偏正面";
+    if (score <= 0.4) return "偏負面";
+    return "中性";
   };
 
   return (
     <div className="p-8 space-y-8">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-white">總覽 Dashboard</h1>
@@ -57,16 +57,14 @@ export default function Dashboard() {
             disabled={scraping}
             className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
           >
-            {scraping ? <Spinner size="sm" /> : "🔄"}
+            <RefreshCw size={14} className={scraping ? "animate-spin" : ""} />
             {scraping ? "爬取中..." : "立即爬取"}
           </button>
         </div>
       </div>
 
-      {/* Board Selector */}
       <BoardSelector value={board} onChange={setBoard} />
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {ovLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
@@ -76,42 +74,23 @@ export default function Dashboard() {
           ))
         ) : (
           <>
-            <StatCard
-              title="文章總數 (7天)"
-              value={overview?.total_articles ?? 0}
-              icon="📰"
-              accent="sky"
-            />
+            <StatCard title="文章總數 (7天)" value={overview?.total_articles ?? 0} icon={FileText} accent="sky" />
             <StatCard
               title="平均情緒"
               value={sentimentLabel(overview?.avg_sentiment_score)}
-              icon="💬"
+              icon={MessageSquare}
               subtitle={`分數 ${overview?.avg_sentiment_score?.toFixed(3) ?? "—"}`}
-              accent="emerald"
+              accent="amber"
             />
-            <StatCard
-              title="正面文章"
-              value={`${overview?.sentiment_distribution?.positive ?? 0} 篇`}
-              icon="😊"
-              accent="emerald"
-            />
-            <StatCard
-              title="負面文章"
-              value={`${overview?.sentiment_distribution?.negative ?? 0} 篇`}
-              icon="😟"
-              accent="rose"
-            />
+            <StatCard title="正面文章" value={`${overview?.sentiment_distribution?.positive ?? 0} 篇`} icon={ThumbsUp} accent="emerald" />
+            <StatCard title="負面文章" value={`${overview?.sentiment_distribution?.negative ?? 0} 篇`} icon={ThumbsDown} accent="rose" />
           </>
         )}
       </div>
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sentiment Pie */}
         <div className="glass rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wide">
-            情緒分布
-          </h2>
+          <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wide">情緒分布</h2>
           {sentLoading || !sentiment ? (
             <div className="flex justify-center py-16"><Spinner /></div>
           ) : (
@@ -119,12 +98,9 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Trend Line */}
         <div className="glass rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-slate-300 mb-1 uppercase tracking-wide">
-            情緒趨勢（14 天）
-          </h2>
-          <p className="text-xs text-slate-500 mb-4">綠線=正面門檻(0.6)　紅線=負面門檻(0.4)</p>
+          <h2 className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wide">情緒趨勢（14 天）</h2>
+          <p className="text-xs text-slate-600 mb-4">綠線 = 正面門檻 (0.6)　紅線 = 負面門檻 (0.4)</p>
           {trendLoading ? (
             <div className="flex justify-center py-16"><Spinner /></div>
           ) : trend.length === 0 ? (
@@ -135,10 +111,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Keyword Bar */}
       <div className="glass rounded-xl p-6">
-        <h2 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wide">
-          熱門關鍵字 Top 15
+        <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wide flex items-center gap-2">
+          <BarChart2 size={14} /> 熱門關鍵字 Top 15
         </h2>
         {kwLoading ? (
           <div className="flex justify-center py-16"><Spinner /></div>

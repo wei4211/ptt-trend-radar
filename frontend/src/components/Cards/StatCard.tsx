@@ -1,9 +1,10 @@
 import clsx from "clsx";
+import { LucideIcon } from "lucide-react";
 
 interface Props {
   title: string;
   value: string | number;
-  icon: string;
+  icon: LucideIcon;
   subtitle?: string;
   accent?: "sky" | "emerald" | "rose" | "amber";
 }
@@ -15,11 +16,11 @@ const accentMap = {
   amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
 };
 
-export default function StatCard({ title, value, icon, subtitle, accent = "sky" }: Props) {
+export default function StatCard({ title, value, icon: Icon, subtitle, accent = "sky" }: Props) {
   return (
     <div className="glass rounded-xl p-5 flex items-start gap-4">
-      <div className={clsx("p-2.5 rounded-lg border text-2xl", accentMap[accent])}>
-        {icon}
+      <div className={clsx("p-2.5 rounded-lg border", accentMap[accent])}>
+        <Icon size={18} strokeWidth={1.8} />
       </div>
       <div className="min-w-0">
         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{title}</p>
